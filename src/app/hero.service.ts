@@ -2,16 +2,17 @@ import { Injectable } from '@angular/core';
 import { from, Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { Hero } from './heroes/hero.model';
-import { HEROES } from './mock-heroes';
 import { MessageService } from './message.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
+import { ResponsePaginationHero } from './heroes/response-pagination-hero.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class HeroService {
 
-  private heroesUrl = 'api/heroes';
+  private heroesUrl = environment.SERVER_API;
 
   httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' })
@@ -19,7 +20,7 @@ export class HeroService {
 
   constructor(private readonly messageService: MessageService,
     private readonly http: HttpClient) { }
-
+/*
     getHeroes(): Observable<Hero[]> {
       return this.http.get<Hero[]>(this.heroesUrl)
         .pipe(
@@ -27,7 +28,7 @@ export class HeroService {
           catchError(this.handleError<Hero[]>('getHeroes', []))
         );
     }
-
+*/
     getHero(id: number): Observable<Hero> {
       const url = `${this.heroesUrl}/${id}`;
       return this.http.get<Hero>(url).pipe(
@@ -54,8 +55,8 @@ export class HeroService {
     };
   }
 
-  updateHero(hero: Hero): Observable<any> {
-    return this.http.put(this.heroesUrl, hero, this.httpOptions).pipe(
+  updateHero(hero: Hero): Observable<any> { 
+    return this.http.put(`${this.heroesUrl}/${hero.id}`, hero, this.httpOptions).pipe(
       tap(_ => this.log(`updated hero id=${hero.id}`)),
       catchError(this.handleError<any>('updateHero'))
     );
@@ -63,7 +64,7 @@ export class HeroService {
 
   addHero(hero: Hero): Observable<Hero> {
     return this.http.post<Hero>(this.heroesUrl, hero, this.httpOptions).pipe(
-      tap((newHero: Hero) => this.log(`added hero w/ id=${newHero.id}`)),
+      tap((newHero: Hero) => this.log(`added hero`)),
       catchError(this.handleError<Hero>('addHero'))
     );
   }
@@ -77,17 +78,25 @@ export class HeroService {
       catchError(this.handleError<Hero>('deleteHero'))
     );
   }
-
+/*
   searchHeroes(term: string): Observable<Hero[]> {
     if (!term.trim()) {
       // if not search term, return empty hero array.
       return of([]);
     }
-    return this.http.get<Hero[]>(`${this.heroesUrl}/?name=${term}`).pipe(
+
+  
+    return this.http.get<Hero[]>(this.heroesUrl).pipe(
       tap(x => x.length ?
          this.log(`found heroes matching "${term}"`) :
          this.log(`no heroes matching "${term}"`)),
       catchError(this.handleError<Hero[]>('searchHeroes', []))
     );
+  }
+  */
+
+ searchHeroes(term: string): Observable<ResponsePaginationHero> {
+  return this.http.get<ResponsePaginationHero>(`${this.heroesUrl}?name=${term}`);
+  
   }
 }
